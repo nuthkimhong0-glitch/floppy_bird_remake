@@ -19,7 +19,7 @@ def render():
                 running = False
 
         # fill the screen with a color to wipe away anything from last frame
-        screen.fill("white")
+        screen.fill("yellow")
 
         w.update()
         m.update()

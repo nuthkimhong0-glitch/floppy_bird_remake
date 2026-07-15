@@ -62,9 +62,9 @@ class narrow_wall:
         self.ishold = True
         
     def update(self):
-        
         self.__upper_wall()
         self.__lowwer_wall()
+
     def __move_across_screen(self):
         self.pX -= self.__vX
         return self.pX
@@ -84,31 +84,64 @@ class narrow_wall:
 class triangle_wall:
     def __init__(self,Screen):
         self.screen = Screen
-        self.__Nblocks = global_variable.GLOBAL_NUM_DIVIDE_HOLE
-        self.__sY = 300
-        self.__pY = global_variable.SCREEN_SIZE_Y / self.__Nblocks
-        self.__pY_1 = self.__pY + self.__sY
-        
-        
         
         #confug the point of pos (triagle)
-        self.__gap = 30*math.sqrt(2)
+        self.scale = 4 #from 8 to 14 gap shall small, if 15 close, (based on 720p, idk how to do dynamic scale yet)
+        self.n_of_triagle = 2
         self.__onXU = 50
         self.__onYU = 50
-        self.__poX1 = [self.__onXU,(self.__onXU + self.__onXU * 3)/2,self.__onXU*3]
-        self.__poY1 = [self.__onYU,self.__onYU*2,self.__onYU]
-        self.__poY2 = [self.__onYU*3,self.__onYU*2,self.__onYU*3]
         
-        # self.__variable_a = math.sqrt((((self.__poX1[0]+self.__poX1[2])/2)**2) + (self.__poY2[1]-self.__poY2[0])**2)
-        self.__offSetX = math.sqrt(((self.__gap*math.sin(45))**2) + (self.__gap**2));
-        # print(self.__variable_a)
-        print(self.__offSetX)
+        #ai here cuz i cant do it properly 
+        # Calculate the distances relative to the starting point, then multiply by scale
+        self.__poX = [
+            self.__onXU,                                             # Point 1: Stays at the start position
+            self.__onXU + (self.scale * (self.__onXU * 2) / 2),      # Point 2: Scaled distance from Point 1
+            self.__onXU + (self.scale * self.__onXU * 2)             # Point 3: Scaled distance from Point 1
+        ]
+
+        self.__poY = [
+            self.__onYU,                                             # Point 1: Stays at the start position
+            self.__onYU + (self.scale * self.__onYU),                # Point 2: Scaled distance from Point 1
+            self.__onYU                                              # Point 3: Returns to start Y position
+        ]
+        #end here
+        
+        hight = self.__poY[1] - self.__poY[0]
+        self.__poY_flip = [(self.__poY[0]+self.__poY[2] - y) + hight * 2  for y in self.__poY] # ts so simple why cant i firgure it out lmao
+        
+        self.__vx = global_variable.GLOBAL_SPEED_X
+        #set position
+        self.__pX = 0
+        self.__pY = -self.__onYU
+        self.__poX = [x + self.__pX -self.__onXU for x in self.__poX]
+        offSetX = self.__poX[1]
+        self.__poX_shift = [x + offSetX + self.__pX  for x in self.__poX]
+        
+        self.__poY = [y + self.__pY for y in self.__poY]
+        self.__poY_flip = [y + self.__pY - hight for y in self.__poY_flip]
+        self.__poY_flip = [y + (global_variable.SCREEN_SIZE_Y - self.__poY_flip[0])  for y in self.__poY_flip]
+
+
     def update(self):
         self.__lowwer_render()
         self.__upper_render()
-        
+    
+    def __move_across_screen(self):
+        self.__pX -= self.__vX
+        return self.pX
+    
     def __upper_render(self):
-        pygame.draw.polygon(self.screen,(50,50,0),[(self.__poX1[0]+self.__offSetX, self.__poY1[0]),(self.__poX1[1]+self.__offSetX,self.__poY1[1]),(self.__poX1[2]+self.__offSetX,self.__poY1[2])])
+        based = self.__poX_shift[2]
+        fix_gap =  self.__poX_shift[2]-self.__poX_shift[1]
+        temp = [(self.__poX_shift[0], self.__poY[0]),(self.__poX_shift[1],self.__poY[1]),(self.__poX_shift[2],self.__poY[2])]
+        for n in range(0,self.n_of_triagle):
+            pygame.draw.polygon(self.screen,(50,50,0),temp)
+            temp = [(x+based - fix_gap,y) for x,y in temp]
 
     def __lowwer_render(self):
-        pygame.draw.polygon(self.screen,(50,50,0),[(self.__poX1[0],self.__poY2[0]),(self.__poX1[1],self.__poY2[1]),(self.__poX1[2],self.__poY2[2])])
+        based = self.__poX[2]
+        temp = [(self.__poX[0],self.__poY_flip[0]),(self.__poX[1],self.__poY_flip[1]),(self.__poX[2],self.__poY_flip[2])]
+        for n in range(0,self.n_of_triagle):
+            pygame.draw.polygon(self.screen,(50,50,0),temp)
+            temp = [(x+based,y) for x,y in temp]
+            
