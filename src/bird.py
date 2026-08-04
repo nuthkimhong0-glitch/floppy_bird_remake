@@ -1,12 +1,54 @@
 import pygame
+import global_variable
 
 class bird_body:
     
-    def __init__(self,screen):
-        self.screen = screen
+    def __init__(self,Screen):
+        self.screen = Screen
+        
+        self.__pX = global_variable.SCREEN_SIZE_X - (global_variable.SCREEN_SIZE_X * (1-0.15))
+        self.__py= global_variable.SCREEN_SIZE_Y/2
+        self.__sizeX = 30
+        self.__sizeY = 30
+        
+        self.__gravity = 0.1
+        self.__jump_force = 2
+        self.__v_y = 0
+        
+        self.__is_hold = True
+        self.__rect = pygame.Rect(self.__pX,self.__v_y,self.__sizeX,self.__sizeY)
+        
+    def update(self):
+        self.__input()
+        self.render()
+        self.boundery()
     
-    def render(self,pX,vY,sX,sY):
-        pygame.draw.rect(self.screen,(255,0,0),(pX,vY,sX,sY))
+    def __input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            if self.__is_hold: 
+                self.__v_y -= self.__jump_force
+                self.__is_hold = False
+        else:
+            self.__is_hold = True
+
+        self.__v_y += self.__gravity
+        self.__py += self.__v_y
+            
     
-    # def collision(self):
+    def boundery(self):
+        if self.__py < 0:
+            self.__py = 0
+            self.__v_y = 0
+        elif self.__sizeY + self.__py > global_variable.SCREEN_SIZE_Y:
+            self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeX
+            self.__v_y = 0
+    
+    def render(self):
+        pygame.draw.rect(self.screen,(255,0,0),self.rect_collision_point())
+        
+    def rect_collision_point(self):
+        self.__rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
+        return self.__rect
+        
         

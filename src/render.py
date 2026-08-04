@@ -1,6 +1,7 @@
 import pygame
 import global_variable
 import mechanic
+import ui
 
 def render():
     pygame.init()
@@ -10,7 +11,7 @@ def render():
     
     m = mechanic.Mbird(screen)
     w = mechanic.MWall(screen)
-    
+    ui_ = ui.score(screen)
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
@@ -23,7 +24,14 @@ def render():
 
         w.update()
         m.update()
-
+        
+        
+        #idk how to combine the system properly here, just do it right here for now i guess
+        w.score_collision_check(m.collision())
+        
+        #ui here i guess
+        ui_.update(w.score)
+        
         # flip() the display to put your work on screen
         pygame.display.flip()
 
