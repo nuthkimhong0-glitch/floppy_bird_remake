@@ -4,15 +4,18 @@ import global_variable
 
 class lead:
     def __init__(self,screen):
+        self.is_game_pause = False
         self.screen = screen
         self.pX =0
         
     def update(self):
-        self.pX -= global_variable.GLOBAL_SPEED_X
+        if not self.is_game_pause:
+            self.pX -= global_variable.GLOBAL_SPEED_X
         pygame.draw.rect(self.screen,(100,55,50),(self.pX,0,10,720))
         
 class normal_wall:
     def __init__(self,Screen):
+        self.is_game_pause = False
         self.__Nblocks = global_variable.GLOBAL_NUM_DIVIDE_HOLE
         self.__pos_block_y = global_variable.SCREEN_SIZE_Y / self.__Nblocks        
         self.__random_block = random.randrange(0,self.__Nblocks)
@@ -26,6 +29,11 @@ class normal_wall:
         self.__vX = global_variable.GLOBAL_SPEED_X
         self.ishold = True
         
+        self.__hole_pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
+        
+        
     def update(self):
         # print(self.__random_block)
         # keys = pygame.key.get_pressed()
@@ -35,19 +43,23 @@ class normal_wall:
         #         self.ishold = False
         # else:
         #     self.ishold = True
-        self.pX -= self.__vX
+        if not self.is_game_pause :
+            self.pX -= self.__vX
         self.__upper_wall()
         self.__lowwer_wall()
             
     def __upper_wall(self):
-        pygame.draw.rect(self.screen,(0,255,100),(self.pX,0,self.sizeX,self.__sizeY))
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        pygame.draw.rect(self.screen,(0,255,100),self.upper_rect)
     
     def __lowwer_wall(self):
-        pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
-        pygame.draw.rect(self.screen,(0,50,0),(self.pX,pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
+        self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
+        pygame.draw.rect(self.screen,(0,50,0),self.lowwer_rect)
+            
     
 class narrow_wall:
     def __init__(self,Screen):
+        self.is_game_pause = False
         self.__Nblocks = global_variable.GLOBAL_NUM_DIVIDE_HOLE
         self.__pos_block_y = global_variable.SCREEN_SIZE_Y / self.__Nblocks        
         self.__random_block = random.randrange(0,self.__Nblocks)
@@ -61,24 +73,29 @@ class narrow_wall:
         self.__vX = global_variable.GLOBAL_SPEED_X
         self.ishold = True
         
+        self.__hole_pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
     def update(self):
         self.__upper_wall()
         self.__lowwer_wall()
-        self.pX -= self.__vX
+        if not self.is_game_pause :
+            self.pX -= self.__vX
 
             
     def __upper_wall(self):
-        pygame.draw.rect(self.screen,(0,255,100),(self.pX,0,self.sizeX,self.__sizeY))
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        pygame.draw.rect(self.screen,(0,255,100),self.upper_rect)
     
     def __lowwer_wall(self):
-        pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
-        pygame.draw.rect(self.screen,(0,50,0),(self.pX,pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
-    
+        self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
+        pygame.draw.rect(self.screen,(0,50,0),self.lowwer_rect)
+
 
 class triangle_wall:
     def __init__(self,Screen,scale):
         self.screen = Screen
-        
+        self.is_game_pause = False
         self.pX = global_variable.SCREEN_SIZE_X*0
         #confug the point of pos (triagle)
         self.scale = scale #from 8 to 14 gap shall small, if 15n it's close, (based on 720p, idk how to do dynamic scale yet)
@@ -126,7 +143,8 @@ class triangle_wall:
     def update(self):
         self.__lowwer_render()
         self.__upper_render()
-        self.__move_across_screen()
+        if not self.is_game_pause:
+            self.__move_across_screen()
         
     def __move_across_screen(self):
         self.poX = [x-self.__vx for x in self.poX]

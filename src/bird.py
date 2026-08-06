@@ -5,6 +5,7 @@ class bird_body:
     
     def __init__(self,Screen):
         self.screen = Screen
+        self.is_game_pause = False
         
         self.__pX = global_variable.SCREEN_SIZE_X - (global_variable.SCREEN_SIZE_X * (1-0.15))
         self.__py= global_variable.SCREEN_SIZE_Y/2
@@ -19,10 +20,10 @@ class bird_body:
         self.__rect = pygame.Rect(self.__pX,self.__v_y,self.__sizeX,self.__sizeY)
         
     def update(self):
-        self.__input()
+        if not self.is_game_pause:
+            self.__input()
+            self.boundery()
         self.render()
-        self.boundery()
-    
     def __input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:

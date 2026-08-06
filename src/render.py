@@ -27,7 +27,13 @@ def render():
         
         
         #idk how to combine the system properly here, just do it right here for now i guess
+        is_game_pause = w.collision_check(m.collision())
         w.score_collision_check(m.collision())
+        
+        if is_game_pause:
+            for obj in w.objs:
+                obj.is_game_pause = True 
+            m.is_game_pause = True
         
         #ui here i guess
         ui_.update(w.score)
