@@ -133,30 +133,55 @@ class triangle_wall:
         self.__poY_flip = [y + (global_variable.SCREEN_SIZE_Y - self.__poY_flip[0])  for y in self.__poY_flip]
         
         self.size_x = self.poX[2] - self.poX[0]
-        self.on_continue()
+        self.set_pos()
 
 
-    def on_continue(self):
+    def set_pos(self):
         self.__pos_u = [(self.poX_shift[0], self.__poY[0]),(self.poX_shift[1],self.__poY[1]),(self.poX_shift[2],self.__poY[2])]
         self.__pos_l = [(self.poX[0],self.__poY_flip[0]),(self.poX[1],self.__poY_flip[1]),(self.poX[2],self.__poY_flip[2])]
-        
     def update(self):
-        self.__lowwer_render()
-        self.__upper_render()
+        self.__render()
         if not self.is_game_pause:
             self.__move_across_screen()
         
     def __move_across_screen(self):
         self.poX = [x-self.__vx for x in self.poX]
         self.poX_shift = [x-self.__vx for x in self.poX_shift]
-        self.on_continue()
+        self.set_pos()
         
-    def __upper_render(self):
-        pygame.draw.polygon(self.screen,(50,50,0),self.__pos_u)
+    #im dumb i ask ai for ts
 
-    def __lowwer_render(self):
+    
+    def _create_polygon_mask(self, points):
+        """Helper to create a Mask from 3 vertex points."""
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+        min_x, max_x = min(xs), max(xs)
+        min_y, max_y = min(ys), max(ys)
+
+        width = max(1, int(max_x - min_x))
+        height = max(1, int(max_y - min_y))
+
+        surf = pygame.Surface((width, height), pygame.SRCALPHA)
+        rel_points = [(p[0] - min_x, p[1] - min_y) for p in points]
+        pygame.draw.polygon(surf, (255, 255, 255), rel_points)
+
+        return pygame.mask.from_surface(surf), (min_x, min_y)
+
+    def get_masks(self):
+        """Returns masks and top-left positions for upper and lower triangles."""
+        upper_mask, upper_pos = self._create_polygon_mask(self.__pos_u)
+        lower_mask, lower_pos = self._create_polygon_mask(self.__pos_l)
+
+        return [
+            (upper_mask, upper_pos),
+            (lower_mask, lower_pos)
+        ]
+        #end here
+    def __render(self):
+        pygame.draw.polygon(self.screen,(50,50,0),self.__pos_u)
         pygame.draw.polygon(self.screen,(50,50,0), self.__pos_l)
+
         
     def collision(self):
         pass
-            

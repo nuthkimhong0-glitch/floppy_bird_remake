@@ -18,12 +18,20 @@ class bird_body:
         
         self.__is_hold = True
         self.__rect = pygame.Rect(self.__pX,self.__v_y,self.__sizeX,self.__sizeY)
-        
+    ### ai code here
+        self.mask = pygame.Mask((self.__sizeX, self.__sizeY))
+        self.mask.fill()
+
+    def get_mask_data(self):
+        """Returns (pygame.Mask, (x_position, y_position))"""
+        return self.mask, (self.__pX, self.__py)
+    ### end here
     def update(self):
         if not self.is_game_pause:
             self.__input()
             self.boundery()
         self.render()
+        
     def __input(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:

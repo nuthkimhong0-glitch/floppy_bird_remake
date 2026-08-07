@@ -16,6 +16,24 @@ class Mbird: # Mehcanic bird
         self.b.is_game_pause = self.is_game_pause
     def collision (self):
         return self.b.rect_collision_point()
+    ## ai =D
+    def check_collision(self, wall_object):
+        """
+        Checks pixel-perfect collision against a narrow_wall or triangle_wall instance.
+        Returns True if colliding, False otherwise.
+        """
+        bird_mask, (bird_x, bird_y) = self.b.get_mask_data()
+        
+        # Iterate over all masks returned by the wall's get_masks() method
+        for wall_mask, (wall_x, wall_y) in wall_object.get_masks():
+            # Offset is wall position relative to bird position
+            offset = (int(wall_x - bird_x), int(wall_y - bird_y))
+            
+            if bird_mask.overlap(wall_mask, offset):
+                return True
+                
+        return False
+    ## end here
 class Object:
     def __init__(self,Screen,maximun_object,order):
         self.screen = Screen
@@ -28,7 +46,7 @@ class Object:
         self.__lead = walls.lead(self.screen)
         self.__wallp = [walls.normal_wall(self.screen) for _ in range(self.num_of_wall_1[0])]
         self.__narrow_wall = walls.narrow_wall(self.screen) 
-        self.__tri_wall = [walls.triangle_wall(self.screen,5) for _ in range(self.num_of_wall_2[0])]
+        self.__tri_wall = [walls.triangle_wall(self.screen,10) for _ in range(self.num_of_wall_2[0])]
         self.__rect_score_point = [] #G for goal?? idk what is the right name
         
         self.__rect_walls_lists = []
@@ -66,7 +84,7 @@ class Object:
                 for i in range(self.num_of_wall_2[0]):
                     self.__tri_wall[i].poX = [x+currentX for x in self.__tri_wall[i].poX]
                     self.__tri_wall[i].poX_shift = [x+currentX for x in self.__tri_wall[i].poX_shift]
-                    self.__tri_wall[i].on_continue()
+                    self.__tri_wall[i].set_pos()
                     currentX += size_px
                 self.__rect_score_point.append(pygame.Rect(self.__tri_wall[-1].poX_shift[1],0,5,720))
                 currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__tri_wall[0].offSetX
@@ -86,14 +104,18 @@ class Object:
                 t1.update()
                 t1.is_game_pause = self.is_game_pause
             
-    
+    def get_triangle_walls(self):
+        # Only return the triangle walls if this Object spawned them (order 2)
+        if self.order == 2:
+            return self.__tri_wall
+        return []
     def update(self):
         
         self.__which_to_spawn()
             
         if not self.is_game_pause:
             for rect in self.__rect_score_point:
-                pygame.draw.rect(self.screen,(0,24,233),rect)
+                # pygame.draw.rect(self.screen,(0,24,233),rect)
                 rect.x -= global_variable.GLOBAL_SPEED_X
             for rect in self.__rect_walls_lists:
                 rect.x -= global_variable.GLOBAL_SPEED_X
@@ -166,7 +188,24 @@ class MWall:
             for rect in obj.rect_walls_collision():
                 if rect.colliderect(player):
                     return True
-                    
+    #ai here
+    def triangle_collision_check(self, player_mbird):
+        """Checks mask collisions ONLY for triangle_wall objects."""
+        bird_mask, (bird_x, bird_y) = player_mbird.b.get_mask_data()
+
+        # Loop through the Object containers first
+        for obj in self.objs:
+            # Grab the actual triangle walls from inside the Object
+            for wall in obj.get_triangle_walls():
+                
+                # Now we can safely get masks and check overlap
+                for wall_mask, (wall_x, wall_y) in wall.get_masks():
+                    offset = (int(wall_x - bird_x), int(wall_y - bird_y))
+                    if bird_mask.overlap(wall_mask, offset):
+                        return True
+
+        return False
+    #end here
     def score_collision_check(self,player):
         any_collision = any(score_rect.colliderect(player) for score_rect in self.objs[0].score_rect_collision())
 
