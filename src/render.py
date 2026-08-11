@@ -2,14 +2,18 @@ import pygame
 import global_variable
 import mechanic
 import ui
+from import_asset import game_asset
+
+pygame.init()
+screen = pygame.display.set_mode((global_variable.SCREEN_SIZE_X, global_variable.SCREEN_SIZE_Y))
+assets = game_asset()
+clock = pygame.time.Clock()
 
 def render():
-    pygame.init()
-    screen = pygame.display.set_mode((global_variable.SCREEN_SIZE_X, global_variable.SCREEN_SIZE_Y))
-    clock = pygame.time.Clock()
     running = True
     gameplay = []    
     [gameplay.append(game_play(screen)) for _ in range(2)]
+    
     
     while running:
         # poll for events
@@ -34,11 +38,11 @@ def render():
 
     pygame.quit()
   
-        
+            
         
 class game_play:
     def __init__(self,screen):
-        self.m = mechanic.Mbird(screen)
+        self.m = mechanic.Mbird(screen,assets)
         self.w = mechanic.MWall(screen)
         self.ui_ = ui.score(screen)
         self.menu = ui.menu(screen)
@@ -48,8 +52,10 @@ class game_play:
         self.is_game_pause = True
         self.is_game_end = False
         self.is_new_game = False
-    
-        self.game_start()
+        
+        self.__is_hold = False
+        
+        self.game_pause(True)
     
     def game_logic(self):
         
@@ -59,27 +65,39 @@ class game_play:
         
         if not self.is_game_start:
             self.menu.render_text()
-            self.is_game_start = self.menu.input()
+            self.is_game_start = self.menu_input()
         else:
-            self.is_game_pause = False
-            self.game_start()
+            self.game_pause(False)
             self.collision_logic()
             if not self.is_game_end:
                 self.ui_.update(self.w.score)
             else:
                 self.end.update()
                 self.end.score = self.w.score
-                self.is_new_game = self.end.input()
-        
+                self.is_new_game = self.menu_input()
+                
+    # there is a bug that if i press space fast it glicth into new game play and showing 
+    # the text for a split the second then game play
+    # i guess i call that a feature =D 
+    def menu_input(self): 
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE]:
+            if not self.__is_hold:
+                self.__is_hold = True
+                return True
+        else:
+            self.__is_hold = False
+        return False
+            
     
-    def game_start(self):
+    def game_pause(self,isgamepause):
         for obj in self.w.objs:
-            obj.is_game_pause = self.is_game_pause
-        self.m.is_game_pause = self.is_game_pause
+            obj.is_game_pause = isgamepause
+        self.m.is_game_pause = isgamepause
         
     def collision_logic(self):
         state = False
-        #idk how to combine the system properly here, just do it right here for now i guess
+        
         is_rect_hit = self.w.collision_check(self.m.collision())       
         is_triangle_hit = self.w.triangle_collision_check(self.m)
         self.w.score_collision_check(self.m.collision())
@@ -87,9 +105,6 @@ class game_play:
         if is_rect_hit or is_triangle_hit: 
             state = True
             
-        #temporaly push game (idk what to do yet)
         if state :
-            for obj in self.w.objs:
-                obj.is_game_pause = True
-            self.m.is_game_pause = True
+            self.game_pause(True)
             self.is_game_end = True

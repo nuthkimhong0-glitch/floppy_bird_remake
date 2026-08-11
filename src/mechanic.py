@@ -6,9 +6,9 @@ from bird import bird_body
 import pygame
 
 class Mbird: # Mehcanic bird    
-    def __init__(self,Screen):
+    def __init__(self,Screen,assets):
         self.screen = Screen
-        self.b = bird_body(Screen)
+        self.b = bird_body(Screen,assets)
         self.is_game_pause = False
     
     def update(self):

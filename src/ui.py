@@ -31,12 +31,6 @@ class menu:
         text = game_font.render(str("Play!"), True, (0,0,0))
         self.__screen.blit(text,(self.pX,self.pY))
         
-    def input(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE]:
-            return True
-        return False
-
 class lose:
     def __init__(self,Screen):
         self.__screen = Screen
@@ -52,9 +46,4 @@ class lose:
         text = game_font.render(str(f"Your Score: {self.score}"), True, (0,0,0))
         self.__screen.blit(text,(self.pX,self.pY))
         
-    def input(self):
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE]:
-            return True
-        return False
         

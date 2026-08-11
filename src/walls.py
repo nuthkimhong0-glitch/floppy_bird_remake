@@ -150,7 +150,6 @@ class triangle_wall:
         self.set_pos()
         
     #im dumb i ask ai for ts
-
     
     def _create_polygon_mask(self, points):
         """Helper to create a Mask from 3 vertex points."""
@@ -183,5 +182,3 @@ class triangle_wall:
         pygame.draw.polygon(self.screen,(50,50,0), self.__pos_l)
 
         
-    def collision(self):
-        pass
