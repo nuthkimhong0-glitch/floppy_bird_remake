@@ -9,7 +9,7 @@ class bird_body:
         self.__pX = global_variable.SCREEN_SIZE_X - (global_variable.SCREEN_SIZE_X * (1-0.15))
         self.__py= global_variable.SCREEN_SIZE_Y/2
         self.__sizeX = 30
-        self.__sizeY = 30
+        self.__sizeY = 24
         
         self.__gravity = 0.1
         self.__jump_force = 2
@@ -51,20 +51,38 @@ class bird_body:
             self.__py = 0
             self.__v_y = 0
         elif self.__sizeY + self.__py > global_variable.SCREEN_SIZE_Y:
-            self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeX
+            self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeY
             self.__v_y = 0
     
+   
     def render(self):
         self.__animation()
-        self.screen.blit(self.player_asset.images_player[int(self.__animatino_state)],self.rect_collision_point())
-        # pygame.draw.rect(self.screen,(255,0,0),self.rect_collision_point())
+        pygame.draw.rect(self.screen,(255,0,0),self.get_rect_collision_point())
+        bird = self.__sprite_rotation()
+        self.screen.blit(bird,self.get_rect_collision_point())
         
-    def rect_collision_point(self):
+    def get_rect_collision_point(self):
+        self.__rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
+        return self.__rect
+    
+    def __sprite_rotation(self,buff_zone = 1):
+        speed = self.__v_y
+        speed = int(speed)
+        bird = self.player_asset.images_player[int(self.__animatino_state)]
+        if speed >-buff_zone and speed < buff_zone:
+            bird = pygame.transform.rotate(bird,0)
+        elif speed < -buff_zone:
+            bird = pygame.transform.rotate(bird,25)
+        elif speed > buff_zone:
+            bird = pygame.transform.rotate(bird,-25)
+            
+        return bird
+    
+    def get_rect_collision_point(self):
         self.__rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
         return self.__rect
     
     def __animation(self):
-        print(int(self.__animatino_state))
         if self.__animatino_state < 2.9: 
             self.__animatino_state += global_variable.GLOBAL_ANIMATION_SPEED
         else:

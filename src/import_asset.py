@@ -9,13 +9,14 @@ class game_asset:
         self.images_player =[]
         self.image_walls = []
         self.__load_all_asset()
-    def __load_all_asset(self):
         
+        
+    def __load_all_asset(self):
         path = 'flappy-bird-assets-master/sprites'
         folder = Path(path)
         files = [f.name for f in folder.iterdir() if f.is_file()]
         files = [path +'/'+ f for f in files]    
-
+        
         for i in range (len(files)):
             if i < 10:
                 self.images_nums.append(pygame.image.load(files[i]).convert_alpha())

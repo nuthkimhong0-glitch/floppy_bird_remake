@@ -14,8 +14,8 @@ class Mbird: # Mehcanic bird
     def update(self):
         self.b.update()
         self.b.is_game_pause = self.is_game_pause
-    def collision (self):
-        return self.b.rect_collision_point()
+    def get_collision (self):
+        return self.b.get_rect_collision_point()
     ## ai =D
     def check_collision(self, wall_object):
         """
@@ -35,7 +35,7 @@ class Mbird: # Mehcanic bird
         return False
     ## end here
 class Object:
-    def __init__(self,Screen,maximun_object,order):
+    def __init__(self,Screen,maximun_object,order,assets):
         self.screen = Screen
         self.num_of_wall_1 = [ x+1 for x in range(maximun_object)]
         self.num_of_wall_2 = [ x+1 for x in range(maximun_object)]
@@ -44,7 +44,7 @@ class Object:
         random.shuffle(self.num_of_wall_2)
         
         self.__lead = walls.lead(self.screen)
-        self.__wallp = [walls.normal_wall(self.screen) for _ in range(self.num_of_wall_1[0])]
+        self.__wallp = [walls.normal_wall(self.screen,assets) for _ in range(self.num_of_wall_1[0])]
         self.__narrow_wall = walls.narrow_wall(self.screen) 
         self.__tri_wall = [walls.triangle_wall(self.screen,10) for _ in range(self.num_of_wall_2[0])]
         self.__rect_score_point = [] #G for goal?? idk what is the right name
@@ -68,7 +68,7 @@ class Object:
                     self.__wallp[i].lowwer_rect.x = currentX
                     self.__rect_walls_lists.append(self.__wallp[i].upper_rect)
                     self.__rect_walls_lists.append(self.__wallp[i].lowwer_rect)
-                    self.__rect_score_point.append(pygame.Rect(self.__wallp[i].pX+self.__wallp[i].sizeX-5,0,5,720))
+                    self.__rect_score_point.append(pygame.Rect(self.__wallp[i].pX+self.__wallp[i].sizeX-5,0,10,820))
                     
                     currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__wallp[i].sizeX
             case 1:
@@ -77,7 +77,7 @@ class Object:
                 self.__narrow_wall.lowwer_rect.x = currentX
                 self.__rect_walls_lists.append(self.__narrow_wall.upper_rect)
                 self.__rect_walls_lists.append(self.__narrow_wall.lowwer_rect)
-                self.__rect_score_point.append(pygame.Rect(self.__narrow_wall.pX+self.__narrow_wall.sizeX-5,0,5,720))
+                self.__rect_score_point.append(pygame.Rect(self.__narrow_wall.pX+self.__narrow_wall.sizeX-5,0,10,820))
                 currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__narrow_wall.sizeX
             case 2:
                 size_px = self.__tri_wall[0].size_x
@@ -86,7 +86,7 @@ class Object:
                     self.__tri_wall[i].poX_shift = [x+currentX for x in self.__tri_wall[i].poX_shift]
                     self.__tri_wall[i].set_pos()
                     currentX += size_px
-                self.__rect_score_point.append(pygame.Rect(self.__tri_wall[-1].poX_shift[1],0,5,720))
+                self.__rect_score_point.append(pygame.Rect(self.__tri_wall[-1].poX_shift[1],0,10,820))
                 currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__tri_wall[0].offSetX
 
         self.last_pos = currentX - self.__tri_wall[0].offSetX *0
@@ -115,22 +115,22 @@ class Object:
             
         if not self.is_game_pause:
             for rect in self.__rect_score_point:
-                # pygame.draw.rect(self.screen,(0,24,233),rect)
+                pygame.draw.rect(self.screen,(0,24,233),rect)
                 rect.x -= global_variable.GLOBAL_SPEED_X
             for rect in self.__rect_walls_lists:
                 rect.x -= global_variable.GLOBAL_SPEED_X
             self.last_pos -= global_variable.GLOBAL_SPEED_X
-            # self.__lead.update()
+            self.__lead.update()
         
     def rect_walls_collision(self):
         return self.__rect_walls_lists
     
-    def score_rect_collision(self):
+    def get_score_rect_collision(self):
         return self.__rect_score_point     
 class MWall:
-    def __init__(self,Screen):
+    def __init__(self,Screen,assets):
         self.screen = Screen
-            
+        self.__assets = assets
         self.score =0
         self.level_max = 5
         self.spawn_rate = global_variable.GLOBAL_SPAWN_RATE
@@ -140,7 +140,7 @@ class MWall:
         self.num_of_spawn = 5
         self.objs = []
         self.__is_hit = False
-        first_obj = Object(self.screen,self.num_of_spawn,self.choose_algorithm())
+        first_obj = Object(self.screen,self.num_of_spawn,self.choose_algorithm(),self.__assets)
         first_obj.spawn()
         self.objs.append(first_obj)
         
@@ -153,7 +153,7 @@ class MWall:
             obj.update()
         
         if self.objs[-1].last_pos < global_variable.SCREEN_SIZE_X:
-            new_obj = Object(self.screen, self.num_of_spawn, self.choose_algorithm())
+            new_obj = Object(self.screen, self.num_of_spawn, self.choose_algorithm(),self.__assets)
             new_obj.spawn()
             self.objs.append(new_obj)
             
@@ -207,7 +207,12 @@ class MWall:
         return False
     #end here
     def score_collision_check(self,player):
-        any_collision = any(score_rect.colliderect(player) for score_rect in self.objs[0].score_rect_collision())
+        any_collision = False
+        for obj in self.objs:
+            for rect in obj.get_score_rect_collision():
+                if rect.colliderect(player):
+                    any_collision = True
+        # any_collision = any(score_rect.colliderect(player) for score_rect in self.objs[0].get_score_rect_collision())
 
         if any_collision:
             if self.__is_hit == False:

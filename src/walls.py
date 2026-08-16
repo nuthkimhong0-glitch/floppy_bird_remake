@@ -14,7 +14,8 @@ class lead:
         pygame.draw.rect(self.screen,(100,55,50),(self.pX,0,10,720))
         
 class normal_wall:
-    def __init__(self,Screen):
+    def __init__(self,Screen,assets):
+        self.__assets = assets
         self.is_game_pause = False
         self.__Nblocks = global_variable.GLOBAL_NUM_DIVIDE_HOLE
         self.__pos_block_y = global_variable.SCREEN_SIZE_Y / self.__Nblocks        
@@ -30,9 +31,10 @@ class normal_wall:
         self.ishold = True
         
         self.__hole_pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
-        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY) #for collision
         self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
         
+        self.__surface = self.__walls_construction()
         
     def update(self):
         # print(self.__random_block)
@@ -45,18 +47,40 @@ class normal_wall:
         #     self.ishold = True
         if not self.is_game_pause :
             self.pX -= self.__vX
-        self.__upper_wall()
-        self.__lowwer_wall()
+        self.__render()
             
-    def __upper_wall(self):
-        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
-        pygame.draw.rect(self.screen,(0,255,100),self.upper_rect)
+    def __render(self):
+        pos = -self.__surface.get_height() + (self.__hole_pos - self.__pos_block_y)
+        # print(f'{pos}')     
+        self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY) #for collision
+        self.upper = pygame.Rect(self.pX,pos,self.sizeX,self.__sizeY)
+        self.lowwer_rect = pygame.Rect(self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y)
+        self.screen.blit(self.__surface,self.upper)
+        self.screen.blit(self.__surface,self.lowwer_rect)
+        
+   
     
-    def __lowwer_wall(self):
-        self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
-        pygame.draw.rect(self.screen,(0,50,0),self.lowwer_rect)
-            
-    
+    #get two imgage stick together and flip
+    def __walls_construction(self):
+        walls = [self.__assets.image_walls[0] for _ in range(2)]
+        walls[1] = pygame.transform.flip(walls[1],False,True)
+        
+        w1,h1 = walls[0].get_size()
+        # w2,h2 = walls[1].get_size()
+        
+        c_h = h1*2
+        c_w = w1
+        
+        # print(f"size h: {c_h}, w: {c_w} ")
+        
+        surface = pygame.Surface((c_w,c_h),pygame.SRCALPHA)
+        
+        surface.blit(walls[0],(0,0))
+        surface.blit(walls[1],(0,h1))
+        
+        return surface
+
+
 class narrow_wall:
     def __init__(self,Screen):
         self.is_game_pause = False
