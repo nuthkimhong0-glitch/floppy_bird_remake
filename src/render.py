@@ -15,13 +15,19 @@ def render():
     [gameplay.append(game_play(screen)) for _ in range(2)]
     
     _background = construct_background(assets)
-    
+    game_start = False
+    new_game = False
     while running:
         # poll for events
         # pygame.QUIT event means the user clicked X to close your window
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    game_start = True
+                    if gameplay[0].is_game_end:
+                        new_game = True
 
         # fill the screen with a color to wipe away anything from last frame
         # screen.fill("yellow")
@@ -29,8 +35,10 @@ def render():
         screen.blit(background(_background,choice),(0,-304)) # from total background size y minus screen y
 
         if not gameplay[0].is_new_game:
-            gameplay[0].game_logic()
+            gameplay[0].game_logic(game_start,new_game)
         else: 
+            game_start = False
+            new_game = False
             gameplay.pop(0)
             gameplay.append(game_play(screen))
         
@@ -90,11 +98,9 @@ class game_play:
         self.is_game_end = False
         self.is_new_game = False
         
-        self.__is_hold = False
-        
         self.game_pause(True)
     
-    def game_logic(self):
+    def game_logic(self,register_game_start,register_new_game):
         
         self.w.update()
         self.m.update()
@@ -102,7 +108,7 @@ class game_play:
         
         if not self.is_game_start:
             self.menu.render_text()
-            self.is_game_start = self.menu_input()
+            self.is_game_start = register_game_start
         else:
             self.game_pause(False)
             self.collision_logic()
@@ -111,22 +117,8 @@ class game_play:
             else:
                 self.end.update()
                 self.end.score = self.score()
-                self.is_new_game = self.menu_input()
+                self.is_new_game = register_new_game
                 
-    # there is a bug that if i press space fast it glicth into new game play and showing 
-    # the text for a split the second then game play
-    # i guess i call that a feature =D 
-    def menu_input(self): 
-        key = pygame.key.get_pressed()
-        if key[pygame.K_SPACE]:
-            if not self.__is_hold:
-                self.__is_hold = True
-                return True
-        else:
-            self.__is_hold = False
-        return False
-            
-    
     def game_pause(self,isgamepause):
         for obj in self.w.objs:
             obj.is_game_pause = isgamepause
