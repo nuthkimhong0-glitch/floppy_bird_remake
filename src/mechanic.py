@@ -45,7 +45,7 @@ class Object:
         
         self.__lead = walls.lead(self.screen)
         self.__wallp = [walls.normal_wall(self.screen,assets) for _ in range(self.num_of_wall_1[0])]
-        self.__narrow_wall = walls.narrow_wall(self.screen) 
+        self.__narrow_wall = walls.narrow_wall(self.screen,assets) 
         self.__tri_wall = [walls.triangle_wall(self.screen,10) for _ in range(self.num_of_wall_2[0])]
         self.__rect_score_point = [] #G for goal?? idk what is the right name
         
@@ -115,12 +115,12 @@ class Object:
             
         if not self.is_game_pause:
             for rect in self.__rect_score_point:
-                pygame.draw.rect(self.screen,(0,24,233),rect)
+                # pygame.draw.rect(self.screen,(0,24,233),rect)
                 rect.x -= global_variable.GLOBAL_SPEED_X
             for rect in self.__rect_walls_lists:
                 rect.x -= global_variable.GLOBAL_SPEED_X
             self.last_pos -= global_variable.GLOBAL_SPEED_X
-            self.__lead.update()
+            # self.__lead.update()
         
     def rect_walls_collision(self):
         return self.__rect_walls_lists
@@ -131,7 +131,7 @@ class MWall:
     def __init__(self,Screen,assets):
         self.screen = Screen
         self.__assets = assets
-        self.score =0
+        self.score = 0
         self.level_max = 5
         self.spawn_rate = global_variable.GLOBAL_SPAWN_RATE
         self.growth_rate = global_variable.GLOBAL_GROWTH_RATE

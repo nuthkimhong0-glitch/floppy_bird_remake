@@ -8,8 +8,8 @@ class bird_body:
         self.is_game_pause = False
         self.__pX = global_variable.SCREEN_SIZE_X - (global_variable.SCREEN_SIZE_X * (1-0.15))
         self.__py= global_variable.SCREEN_SIZE_Y/2
-        self.__sizeX = 30
-        self.__sizeY = 24
+        self.__sizeX = 20
+        self.__sizeY = 20
         
         self.__gravity = 0.1
         self.__jump_force = 2
@@ -44,25 +44,37 @@ class bird_body:
 
         self.__v_y += self.__gravity
         self.__py += self.__v_y
+        
+        self.__fly_state = 0 #fly nomral, down, up
             
     
     def boundery(self):
+        # the 10 offset for make the collision abit right with the size
         if self.__py < 0:
             self.__py = 0
             self.__v_y = 0
-        elif self.__sizeY + self.__py > global_variable.SCREEN_SIZE_Y:
-            self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeY
+        elif self.__sizeY + self.__py+ 10> global_variable.SCREEN_SIZE_Y:
+            self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeY-10
             self.__v_y = 0
     
    
     def render(self):
         self.__animation()
-        pygame.draw.rect(self.screen,(255,0,0),self.get_rect_collision_point())
+        # pygame.draw.rect(self.screen,(255,0,0),self.get_rect_collision_point())
         bird = self.__sprite_rotation()
-        self.screen.blit(bird,self.get_rect_collision_point())
+        self.screen.blit(bird,self.image_pos_bird())
         
+    def image_pos_bird(self):
+        rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
+        return rect
+    
     def get_rect_collision_point(self):
-        self.__rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
+        if self.__fly_state == 0:
+            self.__rect = pygame.Rect(self.__pX+10,self.__py,self.__sizeX,self.__sizeY)
+        elif self.__fly_state == 1:
+            self.__rect = pygame.Rect(self.__pX+10,self.__py+10,self.__sizeX,self.__sizeY)
+        elif self.__fly_state == 2:
+            self.__rect = pygame.Rect(self.__pX+10,self.__py+10,self.__sizeX,self.__sizeY)
         return self.__rect
     
     def __sprite_rotation(self,buff_zone = 1):
@@ -70,17 +82,16 @@ class bird_body:
         speed = int(speed)
         bird = self.player_asset.images_player[int(self.__animatino_state)]
         if speed >-buff_zone and speed < buff_zone:
+            self.__fly_state = 0
             bird = pygame.transform.rotate(bird,0)
         elif speed < -buff_zone:
+            self.__fly_state = 1
             bird = pygame.transform.rotate(bird,25)
         elif speed > buff_zone:
+            self.__fly_state = 2
             bird = pygame.transform.rotate(bird,-25)
             
         return bird
-    
-    def get_rect_collision_point(self):
-        self.__rect = pygame.Rect(self.__pX,self.__py,self.__sizeX,self.__sizeY)
-        return self.__rect
     
     def __animation(self):
         if self.__animatino_state < 2.9: 

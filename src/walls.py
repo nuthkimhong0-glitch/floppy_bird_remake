@@ -82,7 +82,7 @@ class normal_wall:
 
 
 class narrow_wall:
-    def __init__(self,Screen):
+    def __init__(self,Screen,assets):
         self.is_game_pause = False
         self.__Nblocks = global_variable.GLOBAL_NUM_DIVIDE_HOLE
         self.__pos_block_y = global_variable.SCREEN_SIZE_Y / self.__Nblocks        
@@ -91,7 +91,7 @@ class narrow_wall:
         self.screen = Screen
         self.pX = global_variable.SCREEN_SIZE_X*0
         self.__pY = global_variable.SCREEN_SIZE_Y
-        self.sizeX = 1000
+        self.sizeX = 1008
         self.__sizeY = self.__random_block * self.__pos_block_y
         
         self.__vX = global_variable.GLOBAL_SPEED_X
@@ -100,6 +100,12 @@ class narrow_wall:
         self.__hole_pos =  self.__random_block * self.__pos_block_y + self.__pos_block_y
         self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
         self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
+        
+        scale_x = 336 * 3
+        # scale_y = 112/
+        
+        self.__surface = self.__walls_construction(assets,(scale_x,336),1)
+        
     def update(self):
         self.__upper_wall()
         self.__lowwer_wall()
@@ -108,13 +114,42 @@ class narrow_wall:
 
             
     def __upper_wall(self):
+        pos = -self.__surface.get_height() + (self.__hole_pos - self.__pos_block_y)
         self.upper_rect = pygame.Rect(self.pX,0,self.sizeX,self.__sizeY)
+        self.upper_rect_another = pygame.Rect(self.pX,pos,self.sizeX,self.__sizeY)
         pygame.draw.rect(self.screen,(0,255,100),self.upper_rect)
+        self.screen.blit(self.__surface,self.upper_rect_another)
     
     def __lowwer_wall(self):
         self.lowwer_rect = pygame.Rect((self.pX,self.__hole_pos,self.sizeX, global_variable.SCREEN_SIZE_Y))
         pygame.draw.rect(self.screen,(0,50,0),self.lowwer_rect)
+        self.screen.blit(self.__surface,self.lowwer_rect)
 
+    def __walls_construction(self,assets,scale,n):
+        n1 = n*2
+        walls = [assets.images_based_line[2] for _ in range(n1)]
+        walls = [pygame.transform.scale(walls[i],scale)  for i in range(n1)]
+        for i in range(n,n1):
+            walls[i] = pygame.transform.flip(walls[i],False,True) 
+        # print(f'{walls}')
+        
+        w1,h1 = walls[0].get_size()
+        # w2,h2 = walls[1].get_size()
+        
+        c_h = h1*2
+        c_w = w1
+        
+        # print(f"size h: {c_h}, w: {c_w} ")
+        
+        surface = pygame.Surface((c_w,c_h),pygame.SRCALPHA)
+        
+        for i in range(n1):
+            if i < n:
+                surface.blit(walls[i],(0,0))
+            elif i >= n:
+                surface.blit(walls[i],(0,h1))
+            
+        return surface
 
 class triangle_wall:
     def __init__(self,Screen,scale):

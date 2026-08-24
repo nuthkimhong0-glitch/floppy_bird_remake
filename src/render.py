@@ -2,6 +2,7 @@ import pygame
 import global_variable
 import mechanic
 import ui
+import enviroment 
 from import_asset import game_asset
 
 pygame.init()
@@ -13,8 +14,8 @@ def render():
     running = True
     gameplay = []    
     [gameplay.append(game_play(screen)) for _ in range(2)]
-    
-    _background = construct_background(assets)
+    background = enviroment.background(assets,10)
+    baseline = enviroment.base_line(assets)
     game_start = False
     new_game = False
     while running:
@@ -31,11 +32,13 @@ def render():
 
         # fill the screen with a color to wipe away anything from last frame
         # screen.fill("yellow")
-        choice = background_choice(gameplay[0].score(),5)
-        screen.blit(background(_background,choice),(0,-304)) # from total background size y minus screen y
+        
+        _baseline = baseline.baseline_update()
+        bs_upper,bs_lowwer = baseline.relative_position(10)
+        screen.blit(background.background_update(gameplay[0]),background.background_relative_pos()) 
 
         if not gameplay[0].is_new_game:
-            gameplay[0].game_logic(game_start,new_game)
+            gameplay[0].game_logic(_baseline,[bs_upper,bs_lowwer],game_start,new_game)
         else: 
             game_start = False
             new_game = False
@@ -49,49 +52,18 @@ def render():
 
     pygame.quit()
   
-def construct_background(assets):
-    background_days = [assets.images_based_line[0] for _ in range(5)]
-    background_nights = [assets.images_based_line[1] for _ in range(5)]
-    background_days_flip = [assets.images_based_line[0] for _ in range(5)]
-    background_nights_flip = [assets.images_based_line[1] for _ in range(5)]
-    
-    for i in range(5):
-        background_days_flip[i] = pygame.transform.flip(background_days_flip[i],False,True)
-        background_nights_flip[i] = pygame.transform.flip(background_nights_flip[i],False,True)
-    
-    w,h = background_days[0].get_size()
-    
-    surface_days = pygame.Surface((w*5,h*2), pygame.SRCALPHA)
-    surface_night = pygame.Surface((w*5,h*2), pygame.SRCALPHA)
-    
-    for i in range(5):
-        surface_days.blit(background_days_flip[i],(w*i,0)) 
-        surface_days.blit(background_days[i],(w*i,h)) 
-        surface_night.blit(background_nights_flip[i],(w*i,0)) 
-        surface_night.blit(background_nights[i],(w*i,h)) 
-    
-    return [surface_days,surface_night]
-def background(surface_background, choose):
-    match(choose):
-        case 0:
-            return surface_background[0]
-        case 1:
-            return surface_background[1]
 
-#bruh why ts math work i have no idea
-def background_choice(score, set_sequence):
-    # Integer division (//) finds how many 'sequences' have passed.
-    # Modulo 2 (% 2) ensures it always loops back to 0 or 1.
-    return (score // set_sequence) % 2
 
 
 class game_play:
     def __init__(self,screen):
+        self.screen = screen
         self.m = mechanic.Mbird(screen,assets)
         self.w = mechanic.MWall(screen,assets)
-        self.ui_ = ui.score(screen)
-        self.menu = ui.menu(screen)
-        self.end = ui.lose(screen)
+        self.ui_ = ui.score(screen,assets)
+        self.menu = ui.menu(screen,assets)
+        self.end = ui.lose(screen,assets)
+        
         
         self.is_game_start = False
         self.is_game_pause = True
@@ -100,9 +72,13 @@ class game_play:
         
         self.game_pause(True)
     
-    def game_logic(self,register_game_start,register_new_game):
+    def game_logic(self,baseline,base_pos,register_game_start,register_new_game):
         
         self.w.update()
+        
+        self.screen.blit(baseline[0],(0,base_pos[0]))
+        self.screen.blit(baseline[1],(0,base_pos[1])) 
+        
         self.m.update()
         
         
