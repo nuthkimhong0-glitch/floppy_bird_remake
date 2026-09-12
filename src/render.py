@@ -1,15 +1,30 @@
 import pygame
+import sys
 import global_variable
 import mechanic
 import ui
 import enviroment 
-from import_asset import game_asset
+import import_asset 
+import compile
 
 pygame.init()
-screen = pygame.display.set_mode((global_variable.SCREEN_SIZE_X, global_variable.SCREEN_SIZE_Y))
-assets = game_asset()
-clock = pygame.time.Clock()
+pygame.mixer.init()
+pygame.display.set_caption("Floppy Bird !")
 
+#ai, that for compile
+# Choose the short path for the EXE, or the long path for normal Python running
+icon_path = "sprites/bluebird-midflap.png" if getattr(sys, 'frozen', False) else "flappy-bird-assets-master/sprites/bluebird-midflap.png"
+
+pygame.display.set_icon(pygame.image.load(compile.resource_path(icon_path)))
+#end
+
+# pygame.display.set_icon(pygame.image.load(compile.resource_path("flappy-bird-assets-master/sprites/bluebird-midflap.png")))
+screen = pygame.display.set_mode((global_variable.SCREEN_SIZE_X, global_variable.SCREEN_SIZE_Y),pygame.FULLSCREEN | pygame.SCALED)
+# screen = pygame.display.set_mode((global_variable.SCREEN_SIZE_X, global_variable.SCREEN_SIZE_Y))
+assets = import_asset.game_asset()
+audio =  import_asset.audio_game_assets()
+clock = pygame.time.Clock()
+is_full_screen = False
 def render():
     running = True
     gameplay = []    
@@ -27,9 +42,12 @@ def render():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     game_start = True
+                    audio.sounds_effect[4].set_volume(0.1)
+                    audio.sounds_effect[4].play()
                     if gameplay[0].is_game_end:
                         new_game = True
-
+                elif event.key == pygame.K_ESCAPE:
+                    running = False
         # fill the screen with a color to wipe away anything from last frame
         # screen.fill("yellow")
         
@@ -58,8 +76,8 @@ def render():
 class game_play:
     def __init__(self,screen):
         self.screen = screen
-        self.m = mechanic.Mbird(screen,assets)
-        self.w = mechanic.MWall(screen,assets)
+        self.m = mechanic.Mbird(screen,assets,audio)
+        self.w = mechanic.MWall(screen,assets,audio)
         self.ui_ = ui.score(screen,assets)
         self.menu = ui.menu(screen,assets)
         self.end = ui.lose(screen,assets)

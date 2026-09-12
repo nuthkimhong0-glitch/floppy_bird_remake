@@ -2,9 +2,14 @@ import pygame
 import global_variable
 class bird_body:
     
-    def __init__(self,Screen,assets):
+    def __init__(self,Screen,assets,audio):
         self.screen = Screen
         self.player_asset = assets
+        self.player_audio = audio.sounds_effect[4]
+        self.hit_ground_audio = audio.sounds_effect[1]
+        self,self.hit_ground_audio.set_volume(0.1)
+        self.player_audio.set_volume(0.1)
+        self.__chhanel_player = pygame.mixer.Channel(0)
         self.is_game_pause = False
         self.__pX = global_variable.SCREEN_SIZE_X - (global_variable.SCREEN_SIZE_X * (1-0.15))
         self.__py= global_variable.SCREEN_SIZE_Y/2
@@ -16,6 +21,8 @@ class bird_body:
         self.__v_y = 0
         
         self.__animatino_state = 0 # maximun 3 cuz have 3 frame of animation
+
+        self.__is_hit_top_or_bottom_floor = False
 
         self.__is_held = True
         self.__rect = pygame.Rect(self.__pX,self.__v_y,self.__sizeX,self.__sizeY)
@@ -38,6 +45,7 @@ class bird_body:
         if keys[pygame.K_SPACE]:
             if self.__is_held: 
                 self.__v_y -= self.__jump_force
+                # self.__chhanel_player.play(self.player_audio)
                 self.__is_held = False
         else:
             self.__is_held = True
@@ -53,10 +61,17 @@ class bird_body:
         if self.__py < 0:
             self.__py = 0
             self.__v_y = 0
+            if not self.__is_hit_top_or_bottom_floor:
+                self.__chhanel_player.play(self.hit_ground_audio)
+                self.__is_hit_top_or_bottom_floor = True
         elif self.__sizeY + self.__py+ 10> global_variable.SCREEN_SIZE_Y:
             self.__py = global_variable.SCREEN_SIZE_Y-self.__sizeY-10
             self.__v_y = 0
-    
+            if not self.__is_hit_top_or_bottom_floor:
+                self.__chhanel_player.play(self.hit_ground_audio)
+                self.__is_hit_top_or_bottom_floor = True
+        else:
+            self.__is_hit_top_or_bottom_floor = False
    
     def render(self):
         self.__animation()

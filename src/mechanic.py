@@ -6,9 +6,9 @@ from bird import bird_body
 import pygame
 
 class Mbird: # Mehcanic bird    
-    def __init__(self,Screen,assets):
+    def __init__(self,Screen,assets,audio):
         self.screen = Screen
-        self.b = bird_body(Screen,assets)
+        self.b = bird_body(Screen,assets,audio)
         self.is_game_pause = False
     
     def update(self):
@@ -57,6 +57,7 @@ class Object:
         self.is_game_pause = False
         
     def spawn(self):
+        inverse_offset = 30
         currentX = global_variable.SCREEN_SIZE_X
         self.__lead.pX = currentX
         
@@ -68,7 +69,7 @@ class Object:
                     self.__wallp[i].lowwer_rect.x = currentX
                     self.__rect_walls_lists.append(self.__wallp[i].upper_rect)
                     self.__rect_walls_lists.append(self.__wallp[i].lowwer_rect)
-                    self.__rect_score_point.append(pygame.Rect(self.__wallp[i].pX+self.__wallp[i].sizeX-5,0,10,820))
+                    self.__rect_score_point.append(pygame.Rect(self.__wallp[i].pX+self.__wallp[i].sizeX-inverse_offset,0,10,820))
                     
                     currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__wallp[i].sizeX
             case 1:
@@ -77,7 +78,7 @@ class Object:
                 self.__narrow_wall.lowwer_rect.x = currentX
                 self.__rect_walls_lists.append(self.__narrow_wall.upper_rect)
                 self.__rect_walls_lists.append(self.__narrow_wall.lowwer_rect)
-                self.__rect_score_point.append(pygame.Rect(self.__narrow_wall.pX+self.__narrow_wall.sizeX-5,0,10,820))
+                self.__rect_score_point.append(pygame.Rect(self.__narrow_wall.pX+self.__narrow_wall.sizeX-inverse_offset,0,10,820))
                 currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__narrow_wall.sizeX
             case 2:
                 size_px = self.__tri_wall[0].size_x
@@ -86,7 +87,7 @@ class Object:
                     self.__tri_wall[i].poX_shift = [x+currentX for x in self.__tri_wall[i].poX_shift]
                     self.__tri_wall[i].set_pos()
                     currentX += size_px
-                self.__rect_score_point.append(pygame.Rect(self.__tri_wall[-1].poX_shift[1],0,10,820))
+                self.__rect_score_point.append(pygame.Rect(self.__tri_wall[-1].poX_shift[1]-inverse_offset,0,10,820))
                 currentX += global_variable.GLOBAL_SHIFT_POSITION_X_FROM_EACH_OTHER + self.__tri_wall[0].offSetX
 
         self.last_pos = currentX - self.__tri_wall[0].offSetX *0
@@ -128,7 +129,13 @@ class Object:
     def get_score_rect_collision(self):
         return self.__rect_score_point     
 class MWall:
-    def __init__(self,Screen,assets):
+    def __init__(self,Screen,assets,audio):
+        self.__audio = []
+        self.__audio.append(audio.sounds_effect[0])
+        self.__audio.append(audio.sounds_effect[1])
+        self.__audio.append(audio.sounds_effect[2])
+        self.__go_trough_chhanel = [pygame.mixer.Channel(i) for i in range(1,3)]
+        [self.__audio[i].set_volume(0.1) for i in range(3)]
         self.screen = Screen
         self.__assets = assets
         self.score = 0
@@ -143,6 +150,8 @@ class MWall:
         first_obj = Object(self.screen,self.num_of_spawn,self.choose_algorithm(),self.__assets)
         first_obj.spawn()
         self.objs.append(first_obj)
+        
+        self.__one_time = True
         
     def update(self):
         self.spawn_mechanics()
@@ -184,9 +193,14 @@ class MWall:
             return choose_obj[2]
         
     def collision_check(self,player):
+        
         for obj in self.objs:
             for rect in obj.rect_walls_collision():
                 if rect.colliderect(player):
+                    if self.__one_time :
+                        self.__one_time = False
+                        self.__go_trough_chhanel[0].play(self.__audio[1])
+                        self.__go_trough_chhanel[1].play(self.__audio[0])
                     return True
     #ai here
     def triangle_collision_check(self, player_mbird):
@@ -202,6 +216,10 @@ class MWall:
                 for wall_mask, (wall_x, wall_y) in wall.get_masks():
                     offset = (int(wall_x - bird_x), int(wall_y - bird_y))
                     if bird_mask.overlap(wall_mask, offset):
+                        if self.__one_time :
+                            self.__one_time = False
+                            self.__go_trough_chhanel[0].play(self.__audio[1])
+                            self.__go_trough_chhanel[1].play(self.__audio[0])
                         return True
 
         return False
@@ -211,6 +229,7 @@ class MWall:
         for obj in self.objs:
             for rect in obj.get_score_rect_collision():
                 if rect.colliderect(player):
+                    self.__go_trough_chhanel[0].play(self.__audio[2])
                     any_collision = True
         # any_collision = any(score_rect.colliderect(player) for score_rect in self.objs[0].get_score_rect_collision())
 
